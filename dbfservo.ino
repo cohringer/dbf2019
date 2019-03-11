@@ -3,6 +3,8 @@
 while on
 
 #init cond variables "undone"
+read input from nick
+sets bombdrop or wingfold=1
 
 	while bombdrop==1
 		for i
@@ -10,6 +12,7 @@ while on
 			i+1
 		if i=6
 			reset
+			set bomb drop to 0
 		#pins 1-6 on servo driver for bombs
 	while wingfold==1
 		while high && limit==0
