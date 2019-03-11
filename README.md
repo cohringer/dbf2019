@@ -1,6 +1,13 @@
 # dbf2019
 
+#servoshield
+https://learn.adafruit.com/adafruit-16-channel-pwm-slash-servo-shield/overview
+https://learn.adafruit.com/16-channel-pwm-servo-driver/using-the-adafruit-library
+Servo min/max built into the library
+https://www.arduino.cc/en/uploads/Main/ArduinoNanoManual23.pdf
+Pinout for our Arduino
 
+# Tasking from Nick
 Read PWM signal into code
 
 'pulsein' in loop
