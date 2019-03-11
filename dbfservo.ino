@@ -14,7 +14,10 @@ sets bombdrop or wingfold=1
 			set bomb drop to 0
 		#pins 1-6 on servo driver for bombs
 	while wingfold==1 && failsafe=1
-		while high && limit==0
+
+	#Define limits as LeftLow=LL LeftHigh=LH RightLow=RL RightHigh=RH 
+	#limitF=limitFold, limitU=limitunfold 
+		while high && limitH==0 #potential bug with limitH and limitU
 			if servo locked
 				unlock
 				#(servo driver pin 10/11 LR)
@@ -25,8 +28,8 @@ sets bombdrop or wingfold=1
 			if limit
 				lock
 				wingfold==0
-				limit==1
-		while low && limit==1;
+				limitH==1 
+		while low && limitU==0;
 			if servo locked
 				unlock
 				wait
@@ -35,7 +38,7 @@ sets bombdrop or wingfold=1
 			if limit
 				lock 
 				wingfold==0
-				limit==0
+				limitU==0
 
 
 
