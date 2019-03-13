@@ -2,7 +2,7 @@
 
 while on 
 
-#init cond variables "undone"
+//init cond variables "undone"
 read input from nick
 sets bombdrop or wingfold=1
 	while bombdrop==1
@@ -39,6 +39,3 @@ sets bombdrop or wingfold=1
 				lock 
 				wingfold==0
 				limitU==0
-
-
-
