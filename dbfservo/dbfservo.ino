@@ -53,25 +53,31 @@ void loop() {
       reset
       set bomb drop to 0
     #pins 1-6 on servo driver for bombs
-  if((Switch==1) && (Wing_read==1)){  // If fail safe switch is on and if wing fold commd. is given
+  if((Switch==1) && (Wing_read==1)){  // If fail safe switch is on and if wing fold commd. is given //I think it makes sense for these to be loops
+    if servo locked
+      unlock
     for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-      //need to add servo unlock/lock
+     
       while(LOpen==0){
         pwm.setPWM(8, 0, pulselen);
         delay(500)
+        //this while loop will not exit, need to change LOpen at some point within it
       }
     }
     for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
       while(ROpen==0){
         pwm.setPWM(9, 0, pulselen);
         delay(500)
+        //this while loop will not exit, need to change ROpen at some point within it
       }
       
       }
       
     }
 
-    else if(Wing_read==0){ // If wing actuation is given a low signal
+    else if(Switch==1 && Wing_read==0){ // If wing actuation is given a low signal //loops as above
+      if servo locked
+        unlock
       for (uint16_t pulselen = Open_Lpulselen ; pulselen > SERVOMIN; pulselen--) {  // Left wing rolls back into flight ready config.
         while(LClose==0){
           pwm.setPWM(8, 0, pulselen);
