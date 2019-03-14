@@ -1,53 +1,9 @@
-#pseudocode
-
-while on 
-
-//init cond variables "undone"
-read input from nick
-sets bombdrop or wingfold=1
-	while bombdrop==1
-		for i
-			drop
-			i+1
-		if i=6
-			reset
-			set bomb drop to 0
-		#pins 1-6 on servo driver for bombs
-	while wingfold==1 && failsafe=1
-
-	#Define limits as LeftLow=LL LeftHigh=LH RightLow=RL RightHigh=RH 
-	#limitF=limitFold, limitU=limitunfold 
-		while high && limitH==0 #potential bug with limitH and limitU
-			if servo locked
-				unlock
-				#(servo driver pin 10/11 LR)
-				wait
-			actuate wing fold servo 
-			#(servo driver pin 8/9 LR)
-			read in limit #(2-5 on Arduino)
-			if limit
-				lock
-				wingfold==0
-				limitH==1 
-		while low && limitU==0;
-			if servo locked
-				unlock
-				wait
-			actuate wing unfold
-			read in limit
-			if limit
-				lock 
-				wingfold==0
-				limitU==0
-
-
-       #include <Wire.h>
+#include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
-
-
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-
-
+#define LockServoMin 130
+#define LockServoMax 600
+#define SERVOMIN  0
+#define SERVOMAX  4096
 // our servo # counter
 uint8_t servonum = 0;
 const int Open_LLS = 2; //LLS stands for left limit switch & Open indicates that when it hits this limit switch the wing is folded
@@ -58,12 +14,7 @@ const int Bomb_drop = 6;
 const int Wing_fold = 7;
 const int Or = 8; // Switch that sets wing folding ability on or off
 
-#define LockServoMin 130
-#define LockServoMax 600
-
-#define SERVOMIN  0
-#define SERVOMAX  4096
-
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 void setup() {
 
   pinMode(Open_LLS, INPUT); 
@@ -81,7 +32,6 @@ void setup() {
 
   yield()
 }
-
 void loop() {
 
   
@@ -95,9 +45,17 @@ void loop() {
 
   // the below can have both wing fold and bomb drop codes incorporated within, but, the else if part i.e else if(Switch==0) , has to have only bomb dropping mechanism.
   // Add reset to the else if that basically has the flight ready config with pins locking the folding mechanism and potentially have LED's on outside of aircraft to determine these states.
-  
+  while bombdrop==1
+    for i
+      drop
+      i+1
+    if i=6
+      reset
+      set bomb drop to 0
+    #pins 1-6 on servo driver for bombs
   if((Switch==1) && (Wing_read==1)){  // If fail safe switch is on and if wing fold commd. is given
     for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
+      //need to add servo unlock/lock
       while(LOpen==0){
         pwm.setPWM(8, 0, pulselen);
         delay(500)
@@ -145,3 +103,8 @@ void loop() {
 
 
 }
+
+
+
+
+   
