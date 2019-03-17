@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <Servo.h>
 
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
@@ -15,6 +16,16 @@ const int Bomb_drop = 6;
 const int Wing_fold = 7;
 const int Or = 8; // Switch that sets wing folding ability on or off
 int pulselen = 2100;
+int Switch =0;
+int LOpen =0;
+int LClose =0;
+int ROpen =0;
+int RClose =0;
+int Wing_read =0;
+int Bomb_read =0;
+int incomingByte=0;
+
+Servo myservo;
 
 #define LockServoMin 130
 #define LockServoMax 600
@@ -33,11 +44,12 @@ void setup() {
  pinMode(Or, INPUT);
 
  Serial.begin(9600);
+ myservo.attach(7);
  pwm.begin(); // Initializes driver read
 
  pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
 
- yield()
+ yield();
 }
 
 void loop() {
@@ -51,5 +63,11 @@ void loop() {
 
  // Serial.print(Wing_read)
  // Serial.print(Bomb_read)
- pwm.setPWM(8, 0, pulselen)
+
+ if (Serial.available() > 0) {
+   incomingByte=Serial.read();
+   Serial.print(incomingByte);
+   myservo.write(200);
+   delay(500);
+ }
 }
