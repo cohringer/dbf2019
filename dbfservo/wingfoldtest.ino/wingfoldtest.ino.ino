@@ -61,12 +61,13 @@ void loop() {
  Wing_read = digitalRead(Wing_fold); // Read state of wing fold signal
  Bomb_read = digitalRead(Bomb_drop); // Read state of bomb drop signal
 
- // Serial.print(Wing_read)
+ Serial.println(Wing_read);
  // Serial.print(Bomb_read)
 
  if (Serial.available() > 0) {
+   Serial.println("if statement");
    incomingByte=Serial.read();
-   Serial.print(incomingByte);
+   Serial.println(incomingByte);
    myservo.write(200);
    delay(500);
  }

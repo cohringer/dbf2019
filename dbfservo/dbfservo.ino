@@ -56,19 +56,18 @@ void loop() {
   if((Switch==1) && (Wing_read==1)){  // If fail safe switch is on and if wing fold commd. is given //I think it makes sense for these to be loops
     if servo locked
       unlock
-    for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-     
-      while(LOpen==0){
+     while(LOpen==0){
+      for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++){
         pwm.setPWM(8, 0, pulselen);
         delay(500)
-        //this while loop will not exit, need to change LOpen at some point within it
+        LOpen = digitalRead(Open_LLS);
       }
     }
     for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
       while(ROpen==0){
         pwm.setPWM(9, 0, pulselen);
         delay(500)
-        //this while loop will not exit, need to change ROpen at some point within it
+        ROpen = digitalRead(Open_RLS);
       }
       
       }
@@ -88,18 +87,21 @@ void loop() {
         for (uint16_t pulselen = LockServoMin; pulselen < LockServoMax; pulselen++){
           pwm.setPWM(10, 0, pulselen);
           delay(50)
+          LClose = digitalRead(Close_LLS);
         } 
       }
       for (uint16_t pulselen = Open_Rpulselen ; pulselen > SERVOMIN; pulselen--) {  // Right wing rolls back into flight ready config.
         while(RClose==0){
           pwm.setPWM(9, 0, pulselen);
           delay(500)
+          RClose = digitalRead(Close_RLS);
         }
       }
       if(RClose==1){   // Right servo locks when RLS Close limit switch is high
         for (uint16_t pulselen = LockServoMin; pulselen < LockServoMax; pulselen++){
           pwm.setPWM(11, 0, pulselen);
           delay(50)
+          
         } 
       }
     }
