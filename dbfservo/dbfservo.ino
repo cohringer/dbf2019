@@ -30,31 +30,30 @@ void setup() {
   
   pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
 
-  yield()
+  yield();
 }
 void loop() {
 // #Define limits as LeftStowed=LS Left(Flight)Ready=LR RightStow=RS Right(Flight)Ready=RR
-// #limitR/LS=limitRight/LeftStowed, limitR/LF=limitRight/LeftFlight
+// #limitR/LS=limitRight/LeftStowed, limitR/LU=limitRight/LeftFlight
 // open is stowed configuration
   
-  Switch = digitalRead(Or); // Reads status of safety switch
-  limitLS= digitalRead(Open_LLS);
-  limitLF = digitalRead(Close_LLS);
-  limitRS = digitalRead(Open_RLS);
-  limitRF = digitalRead(Close_RLS);
-  Wing_read = digitalRead(Wing_fold); // Read state of wing fold signal
-  bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
-
-  // the below can have both wing fold and bomb drop codes incorporated within, but, the else if part i.e else if(Switch==0) , has to have only bomb dropping mechanism.
+  int Switch = digitalRead(Or); // Reads status of safety switch
+  int limitLS = digitalRead(Open_LLS);
+  int limitLF = digitalRead(Close_LLS);
+  int limitRS = digitalRead(Open_RLS);
+  int limitRF = digitalRead(Close_RLS);
+  int Wing_read = digitalRead(Wing_fold); // Read state of wing fold signal
+  int bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
+ // the below can have both wing fold and bomb drop codes incorporated within, but, the else if part i.e else if(Switch==0) , has to have only bomb dropping mechanism.
   // Add reset to the else if that basically has the flight ready config with pins locking the folding mechanism and potentially have LED's on outside of aircraft to determine these states.
-  while bombdrop==1
-    for (i=0;i<7;i++) {
-    bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
-    if(bombdrop == 1){
-      Serial.println(servonum);
-      for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-        pwm.setPWM(servonum, 0, pulselen); //pick one of these, define SERVOMIN/MAX as the open or closed position for the bombs
-      }
+  //while (bombdrop==1) {
+  //  for (i=0;i<7;i++) {
+  //  bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
+  //  if(bombdrop == 1){
+  //    Serial.println(servonum);
+  //    for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
+  //      pwm.setPWM(servonum, 0, pulselen); //pick one of these, define SERVOMIN/MAX as the open or closed position for the bombs
+  //    }
     
 
       //delay(500);
@@ -63,61 +62,67 @@ void loop() {
       //}
 //
   //    delay(500);
-    }
-    else if(bombdrop ==0){
-      servonum++;
-    //pins 1-6 on servo driver for bombs
+    //}
+   // else if(bombdrop ==0){
+   //   servonum++;
+   // //pins 1-6 on servo driver for bombs
 
-    //wingfold
-  if((Switch==1) && (Wing_read==1)){  // If fail safe switch is on and if wing fold commd. is given //I think it makes sense for these to be loops
-    if servo locked
-      unlock
-     while(LOpen==0){ 
-      for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++){
+   //wingfold
+ 
+  while ((Switch==HIGH) && (Wing_read==HIGH)){  // If fail safe switch is on and wing read is high, we want the wing to stow.
+    //if servo locked
+     // unlock
+     uint16_t LSpulselen = SERVOMIN //CALIBRATE
+     uint16_t RSpulselen = SERVOMIN; //CALIBRATE
+     while(limitLS==LOW && pulselen < SERVOMAX){
         pwm.setPWM(8, 0, pulselen);
-        delay(500)
-        LOpen = digitalRead(Open_LLS);
+        delay(500);
+        limitLS = digitalRead(Open_LLS);
+        Stow_Lpulselen=pulselen;
+        pulselen++;
       }
     }
-    while(ROpen==0) {
-      for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++){
+    while(limitRS==LOW && pulselen < SERVOMAX) {
         pwm.setPWM(9, 0, pulselen);
-        delay(500)
-        ROpen = digitalRead(Open_RLS);
-      }
-      
-      }
-      
-    }
-
-    else if(Switch==1 && Wing_read==0){ // If wing actuation is given a low signal //loops as above
-      if servo locked
-        unlock
-      while(LL==0) {  // Left wing rolls back into flight ready config.
-        for (uint16_t pulselen = Open_Lpulselen ; pulselen > SERVOMIN; pulselen--){
-          pwm.setPWM(8, 0, pulselen);
-          delay(500)
-          LClose = digitalRead(Close_LLS);
+        delay(500);
+        limitRS = digitalRead(Open_RLS);
+        Stow_Rpulselen=pulselen;
+        pulselen++;
         }
       }
-      if(LClose==1){   // Right servo locks when RLS Close limit switch is high
+      
+      }
+      
+    }
+
+    while (Switch==HIGH && Wing_read==LOW){ // While wing actuation is given a low signal, we want the wings to go into flight ready config and the servos to lock.
+    //  if servo locked
+      //  unlock
+      if(limitLF==LOW) {  // Left wing rolls back into flight ready config.
+        for (uint16_t pulselen = Stow_Lpulselen ; pulselen > SERVOMIN; pulselen--){
+          pwm.setPWM(8, 0, pulselen);
+          delay(500);
+          limitLF = digitalRead(Close_LLS);
+        }
+      }
+      if(limitLF==HIGH){   // Left servo locks when RLS Close limit switch is high
         for (uint16_t pulselen = LockServoMin; pulselen < LockServoMax; pulselen++){
           pwm.setPWM(10, 0, pulselen);
-          delay(50)
-          LClose = digitalRead(Close_LLS);
+          delay(50);
+          limitLF = digitalRead(Close_LLS);
         } 
       }
-      for (uint16_t pulselen = Open_Rpulselen ; pulselen > SERVOMIN; pulselen--) {  // Right wing rolls back into flight ready config.
-        while(RClose==0){
+      for (uint16_t pulselen = Stow_Rpulselen ; pulselen > SERVOMIN; pulselen--) {  // Right wing rolls back into flight ready config.
+        while(limitRF==LOW){
           pwm.setPWM(9, 0, pulselen);
-          delay(500)
-          RClose = digitalRead(Close_RLS);
+          delay(500);
+          limitRF = digitalRead(Close_RLS);
         }
       }
-      if(RClose==1){   // Right servo locks when RLS Close limit switch is high
+      if(limitRF==HIGH){   // Right servo locks when RLS Close limit switch is high
         for (uint16_t pulselen = LockServoMin; pulselen < LockServoMax; pulselen++){
           pwm.setPWM(11, 0, pulselen);
-          delay(50)
+          delay(50);
           
         } 
       }
@@ -125,7 +130,6 @@ void loop() {
 
     
   }
-// Fix Akshay's convention to what I originally designated
 
 
 }
