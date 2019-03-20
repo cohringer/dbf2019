@@ -68,7 +68,7 @@ void loop() {
       
       Serial.println(servonum);
       for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-        pwm.setPWM(servonum, 0, pulselen);
+        pwm.setPWM(servonum, 0, pulselen); //pick one of these, define SERVOMIN/MAX as the open or closed position for the bombs
       }
     
 
@@ -79,8 +79,8 @@ void loop() {
 
       delay(500);
     }
-    if(bombdrop ==0){
-      bomb ++;
+    else if(bombdrop ==0){
+      servonum++;
     }  // Lets it go to next bomb
   }  //Ends while loop
 }

@@ -33,26 +33,42 @@ void setup() {
   yield()
 }
 void loop() {
-
+// #Define limits as LeftStowed=LS Left(Flight)Ready=LR RightStow=RS Right(Flight)Ready=RR
+// #limitR/LS=limitRight/LeftStowed, limitR/LF=limitRight/LeftFlight
+// open is stowed configuration
   
   Switch = digitalRead(Or); // Reads status of safety switch
-  LOpen = digitalRead(Open_LLS);
-  LClose = digitalRead(Close_LLS);
-  ROpen = digitalRead(Open_RLS);
-  RClose = digitalRead(Close_RLS);
+  limitLS= digitalRead(Open_LLS);
+  limitLF = digitalRead(Close_LLS);
+  limitRS = digitalRead(Open_RLS);
+  limitRF = digitalRead(Close_RLS);
   Wing_read = digitalRead(Wing_fold); // Read state of wing fold signal
-  Bomb_read = digitalRead(Bomb_drop); // Read state of bomb drop signal
+  bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
 
   // the below can have both wing fold and bomb drop codes incorporated within, but, the else if part i.e else if(Switch==0) , has to have only bomb dropping mechanism.
   // Add reset to the else if that basically has the flight ready config with pins locking the folding mechanism and potentially have LED's on outside of aircraft to determine these states.
   while bombdrop==1
-    for i
-      drop
-      i+1
-    if i=6
-      reset
-      set bomb drop to 0
-    #pins 1-6 on servo driver for bombs
+    for (i=0;i<7;i++) {
+    bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
+    if(bombdrop == 1){
+      Serial.println(servonum);
+      for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
+        pwm.setPWM(servonum, 0, pulselen); //pick one of these, define SERVOMIN/MAX as the open or closed position for the bombs
+      }
+    
+
+      //delay(500);
+      //for (uint16_t pulselen = SERVOMAX; pulselen > SERVOMIN; pulselen--) {
+        //pwm.setPWM(servonum, 0, pulselen);
+      //}
+//
+  //    delay(500);
+    }
+    else if(bombdrop ==0){
+      servonum++;
+    //pins 1-6 on servo driver for bombs
+
+    //wingfold
   if((Switch==1) && (Wing_read==1)){  // If fail safe switch is on and if wing fold commd. is given //I think it makes sense for these to be loops
     if servo locked
       unlock
@@ -77,7 +93,7 @@ void loop() {
     else if(Switch==1 && Wing_read==0){ // If wing actuation is given a low signal //loops as above
       if servo locked
         unlock
-      while(LClose==0) {  // Left wing rolls back into flight ready config.
+      while(LL==0) {  // Left wing rolls back into flight ready config.
         for (uint16_t pulselen = Open_Lpulselen ; pulselen > SERVOMIN; pulselen--){
           pwm.setPWM(8, 0, pulselen);
           delay(500)
@@ -110,8 +126,7 @@ void loop() {
     
   }
 // Fix Akshay's convention to what I originally designated
-// #Define limits as LeftLow=LL LeftHigh=LH RightLow=RL RightHigh=RH 
-// #limitF=limitFold, limitU=limitunfold 
+
 
 }
 
