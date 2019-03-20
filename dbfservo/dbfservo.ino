@@ -75,18 +75,18 @@ void loop() {
      uint16_t LSpulselen = SERVOMIN //CALIBRATE
      uint16_t RSpulselen = SERVOMIN; //CALIBRATE
      while(limitLS==LOW && pulselen < SERVOMAX){
-        pwm.setPWM(8, 0, pulselen);
+        pwm.setPWM(8, 0, LSpulselen);
         delay(500);
         limitLS = digitalRead(Open_LLS);
-        Stow_Lpulselen=pulselen;
+        Stow_Lpulselen=LSpulselen;
         pulselen++;
       }
     }
     while(limitRS==LOW && pulselen < SERVOMAX) {
-        pwm.setPWM(9, 0, pulselen);
+        pwm.setPWM(9, 0, RSpulselen);
         delay(500);
         limitRS = digitalRead(Open_RLS);
-        Stow_Rpulselen=pulselen;
+        Stow_Rpulselen=RSpulselen;
         pulselen++;
         }
       }
@@ -98,32 +98,36 @@ void loop() {
     while (Switch==HIGH && Wing_read==LOW){ // While wing actuation is given a low signal, we want the wings to go into flight ready config and the servos to lock.
     //  if servo locked
       //  unlock
-      if(limitLF==LOW) {  // Left wing rolls back into flight ready config.
-        for (uint16_t pulselen = Stow_Lpulselen ; pulselen > SERVOMIN; pulselen--){
-          pwm.setPWM(8, 0, pulselen);
+      uint16_t LFpulselen = Stow_Lpulselen; //Might need to change if we don't want to rely on the value that it was previously at
+      uint16_t RFpulselen = Stow_Rpulselen; //Same Comment
+      uint16_t limitLFpulselen=LockServoMin; //check later whether these defs will reset things prematurely
+      uint16_t limitRFpulselen = LockServoMin;
+      while(limitLF==LOW && LFpulselen > SERVOMIN) {  // Left wing rolls back into flight ready config.
+          pwm.setPWM(8, 0, LFpulselen);
           delay(500);
           limitLF = digitalRead(Close_LLS);
+          LFpulselen--;
         }
       }
-      if(limitLF==HIGH){   // Left servo locks when RLS Close limit switch is high
-        for (uint16_t pulselen = LockServoMin; pulselen < LockServoMax; pulselen++){
-          pwm.setPWM(10, 0, pulselen);
+      while (limitLF==HIGH && limitLFpulselen < LockServoMax){   // Left servo locks when RLS Close limit switch is high
+          pwm.setPWM(10, 0, limitLFpulselen);
           delay(50);
           limitLF = digitalRead(Close_LLS);
+          limitLFpulselen++;
+          //might need to add a contingency if lockservomax is not well calibrated
         } 
       }
-      for (uint16_t pulselen = Stow_Rpulselen ; pulselen > SERVOMIN; pulselen--) {  // Right wing rolls back into flight ready config.
-        while(limitRF==LOW){
-          pwm.setPWM(9, 0, pulselen);
+      while(limitRF==LOW && RFpulselen > SERVOMIN) {  // Right wing rolls back into flight ready config.
+          pwm.setPWM(9, 0, RFpulselen);
           delay(500);
           limitRF = digitalRead(Close_RLS);
+          RFpulselen--;
         }
       }
-      if(limitRF==HIGH){   // Right servo locks when RLS Close limit switch is high
-        for (uint16_t pulselen = LockServoMin; pulselen < LockServoMax; pulselen++){
+      while(limitRF==HIGH && limitRFpulselen < LockServoMax){   // Right servo locks when RLS Close limit switch is high
           pwm.setPWM(11, 0, pulselen);
           delay(50);
-          
+          limitRFpulselen++;
         } 
       }
     }
