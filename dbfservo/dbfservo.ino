@@ -13,6 +13,17 @@ const int Close_RLS = 5; //RLS stands for right limit switch and Close indicates
 const int Bomb_drop = 6;
 const int Wing_fold = 7;
 const int Or = 8; // Switch that sets wing folding ability on or off
+int pulselen_R_Close = 420; //blaze it
+int pulselen_R_Open = 200;
+int pulselen_L_Close = 300;
+int pulselen_L_Open = 460;
+int LOpen =1;
+int LClose =1;
+int ROpen =1;
+int RClose =1;
+int Wing_read =0;
+int LLockServoMax=335;
+int RLockServoMax=325;
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 void setup() {
@@ -21,29 +32,28 @@ void setup() {
   pinMode(Close_LLS, INPUT); 
   pinMode(Open_RLS, INPUT); 
   pinMode(Close_RLS, INPUT); 
-  pinMode(Bomb_drop, INPUT);
+  //pinMode(Bomb_drop, INPUT);
   pinMode(Wing_fold, INPUT);
-  pinMode(Or, INPUT); 
+  //pinMode(Or, INPUT); 
   
   Serial.begin(9600);
   pwm.begin(); // Initializes driver read
   
   pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
 
-  yield();
 }
 void loop() {
 // #Define limits as LeftStowed=LS Left(Flight)Ready=LR RightStow=RS Right(Flight)Ready=RR
 // #limitR/LS=limitRight/LeftStowed, limitR/LU=limitRight/LeftFlight
 // open is stowed configuration
   
-  int Switch = digitalRead(Or); // Reads status of safety switch
-  int limitLS = digitalRead(Open_LLS);
-  int limitLF = digitalRead(Close_LLS);
-  int limitRS = digitalRead(Open_RLS);
-  int limitRF = digitalRead(Close_RLS);
-  int Wing_read = digitalRead(Wing_fold); // Read state of wing fold signal
-  int bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
+//  int Switch = digitalRead(Or); // Reads status of safety switch
+//  int limitLS = digitalRead(Open_LLS);
+//  int limitLF = digitalRead(Close_LLS);
+//  int limitRS = digitalRead(Open_RLS);
+//  int limitRF = digitalRead(Close_RLS);
+//  int Wing_read = digitalRead(Wing_fold); // Read state of wing fold signal
+//  int bombdrop = digitalRead(Bomb_drop); // Read state of bomb drop signal
  // the below can have both wing fold and bomb drop codes incorporated within, but, the else if part i.e else if(Switch==0) , has to have only bomb dropping mechanism.
   // Add reset to the else if that basically has the flight ready config with pins locking the folding mechanism and potentially have LED's on outside of aircraft to determine these states.
   //while (bombdrop==1) {
@@ -73,23 +83,24 @@ void loop() {
     //if servo locked
      // unlock
      uint16_t LSpulselen = SERVOMIN //CALIBRATE
-     uint16_t RSpulselen = SERVOMIN; //CALIBRATE
-     while(limitLS==LOW && pulselen < SERVOMAX){
+     uint16_t RSpulselen = SERVOMAX; //CALIBRATE
+     while(limitLS==1){
         pwm.setPWM(8, 0, LSpulselen);
-        delay(500);
         limitLS = digitalRead(Open_LLS);
         Stow_Lpulselen=LSpulselen;
-        pulselen++;
       }
-    }
-    while(limitRS==LOW && pulselen < SERVOMAX) {
+     if (digitalRead(Open_LLS)==0) {
+        pwm.setPWM(8, 0, 345);
+      }
+     delay(3000);
+    while(limitRS==1) {
         pwm.setPWM(9, 0, RSpulselen);
-        delay(500);
         limitRS = digitalRead(Open_RLS);
         Stow_Rpulselen=RSpulselen;
-        pulselen++;
         }
-      }
+    if (digitalRead(Open_RLS)==0) {
+            pwm.setPWM(9, 0, 345);
+        }
       
       }
       
@@ -100,34 +111,28 @@ void loop() {
       //  unlock
       uint16_t LFpulselen = Stow_Lpulselen; //Might need to change if we don't want to rely on the value that it was previously at
       uint16_t RFpulselen = Stow_Rpulselen; //Same Comment
-      uint16_t limitLFpulselen=LockServoMin; //check later whether these defs will reset things prematurely
-      uint16_t limitRFpulselen = LockServoMin;
-      while(limitLF==LOW && LFpulselen > SERVOMIN) {  // Left wing rolls back into flight ready config.
+      while(limitLF==LOW) {  // Left wing rolls back into flight ready config.
           pwm.setPWM(8, 0, LFpulselen);
-          delay(500);
           limitLF = digitalRead(Close_LLS);
-          LFpulselen--;
+          delay(100);
         }
-      }
-      while (limitLF==HIGH && limitLFpulselen < LockServoMax){   // Left servo locks when RLS Close limit switch is high
-          pwm.setPWM(10, 0, limitLFpulselen);
-          delay(50);
-          limitLF = digitalRead(Close_LLS);
-          limitLFpulselen++;
-          //might need to add a contingency if lockservomax is not well calibrated
-        } 
-      }
-      while(limitRF==LOW && RFpulselen > SERVOMIN) {  // Right wing rolls back into flight ready config.
+      while(limitRF==1 && RFpulselen > SERVOMIN) {  // Right wing rolls back into flight ready config.
           pwm.setPWM(9, 0, RFpulselen);
-          delay(500);
           limitRF = digitalRead(Close_RLS);
-          RFpulselen--;
+          delay(100);
         }
+      if (digitalRead(Close_RLS)==0) {
+        pwm.setPWM(9, 0, 345);
       }
-      while(limitRF==HIGH && limitRFpulselen < LockServoMax){   // Right servo locks when RLS Close limit switch is high
-          pwm.setPWM(11, 0, pulselen);
+
+      if(limitLF==HIGH){   // Left servo locks when RLS Close limit switch is high
+          pwm.setPWM(10, 0, LLockServoMax);
           delay(50);
-          limitRFpulselen++;
+          //might need to add a contingency if lockservomax is not well calibrated
+        }
+      if(limitRF==HIGH){   // Right servo locks when RLS Close limit switch is high
+          pwm.setPWM(11, 0, RLockServoMax);
+          delay(50);
         } 
       }
     }
